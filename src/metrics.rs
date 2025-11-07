@@ -41,4 +41,12 @@ impl RoomMetrics {
     pub fn formatted_time(&self) -> String {
         format!("{}s", self.timestamp)
     }
+
+    pub fn door_to_string(&self) -> &str {
+        if self.door_open {
+            "Open"
+        } else {
+            "Closed"
+        }
+    }
 }
