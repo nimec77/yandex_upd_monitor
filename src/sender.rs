@@ -31,19 +31,32 @@ impl MetricsSender {
             "The sensor simulator has been launched. Sending to {target_address} every {interval_ms}ms"
         );
 
+        #[cfg(feature = "random")]
+        println!("✅ The 'random' feature is active - rand is used to generate data");
+
+        #[cfg(not(feature = "random"))]
+        println!("✅ The 'random' feature is inactive - fixed data is used");
+
         loop {
             let metrics = RoomMetrics::random();
 
             match self.send_to(&metrics, &target_address) {
-                Ok(()) => println!(
-                    "[{}] Sent: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
-                    metrics.formatted_time(),
-                    metrics.temperature,
-                    metrics.humidity,
-                    metrics.pressure,
-                    metrics.door_to_string(),
-                    metrics.vibration_level,
-                ),
+                Ok(()) => {
+                    println!(
+                        "[{}] Sent: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
+                        metrics.formatted_time(),
+                        metrics.temperature,
+                        metrics.humidity,
+                        metrics.pressure,
+                        metrics.door_to_string(),
+                        metrics.vibration_level,
+                    );
+
+                    #[cfg(feature = "sqlite")]
+                    {
+                        println!("   💾 SQL: {}", metrics.to_sql());
+                    }
+                }
                 Err(e) => eprintln!("Error sending metrics: {e}"),
             }
 

@@ -33,6 +33,7 @@ impl RoomMetrics {
         }
     }
 
+    #[cfg(feature = "random")]
     pub fn random() -> Self {
         use rand::Rng;
 
@@ -47,11 +48,41 @@ impl RoomMetrics {
         )
     }
 
+    #[cfg(not(feature = "random"))]
+    pub fn random() -> Self {
+        use std::hash::DefaultHasher;
+
+        let mut hasher = DefaultHasher::new();
+        SystemTime::now().hash(&mut hasher);
+        let hash = hasher.finish();
+
+        Self::new(
+            20.0 + ((hash % 1000) as f32 / 100.0),
+            40.0 + ((hash % 1000) as f32 / 50.0),
+            1000.0 + ((hash % 400) as f32 - 200.0),
+            hash % 10 == 0,
+            30 + ((hash % 1000) as f32 / 10.0),
+        )
+    }
+
     pub fn formatted_time(&self) -> String {
         format!("{}s", self.timestamp)
     }
 
     pub fn door_to_string(&self) -> &str {
         if self.door_open { "Open" } else { "Closed" }
+    }
+
+    #[cfg(feature = "sqlite")]
+    pub fn to_sql(&self) -> String {
+        format!(
+            "INSERT INTO metrics (timestamp, temperature, humidity, pressure, door_open, vibration_level) VALUES ({}, {:.1}, {:.1}, {:.1}, {}, {:.1})",
+            self.timestamp,
+            self.temperature,
+            self.humidity,
+            self.pressure,
+            self.door_open,
+            self.vibration_level
+        )
     }
 }
