@@ -21,7 +21,7 @@ impl MetricsReceiver {
         })
     }
 
-    pub fn receive_loop(self) -> Result<(), Box<dyn std::error::Error>> {
+    fn receive_loop(self) -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = [0u8; 1024];
 
         println!("Waiting for metrics...");
@@ -53,19 +53,24 @@ impl MetricsReceiver {
         }
     }
 
-    // pub fn start_with_channel(self) -> (thread::JoinHandle<()>, mpsc::Receiver<(RoomMetrics, std::net::SocketAddr)>) {
-    //     let (tx, rx) = mpsc::channel();
+    pub fn start_with_channel(
+        self,
+    ) -> (
+        thread::JoinHandle<()>,
+        mpsc::Receiver<(RoomMetrics, std::net::SocketAddr)>,
+    ) {
+        let (tx, rx) = mpsc::channel();
 
-    //     let handle = thread::spawn(move || {
-    //         if let Err(e) = self.receive_loop(tx) {
-    //             eprintln!("Error receiving metrics: {e}");
-    //         }
-    //     });
+        let handle = thread::spawn(move || {
+            if let Err(e) = self.receive_loop_with_channel(tx) {
+                eprintln!("Error receiving metrics: {e}");
+            }
+        });
 
-    //     todo!()
-    // }
+        (handle, rx)
+    }
 
-    pub fn receive_loop_with_channel(
+    fn receive_loop_with_channel(
         self,
         tx: mpsc::Sender<(RoomMetrics, std::net::SocketAddr)>,
     ) -> Result<(), Box<dyn std::error::Error>> {

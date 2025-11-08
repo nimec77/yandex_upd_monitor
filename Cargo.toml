@@ -7,3 +7,11 @@ edition = "2024"
 bincode = { version = "2.0.1", features = ["serde"] }
 rand = "0.9.2"
 serde = { version = "1.0.228", features = ["derive"] }
+
+# [[bin]]
+# name = "sensor_simulator"
+# path = "bins/sensor_simulator/main.rs"
+
+# [[bin]]
+# name = "monitor"
+# path = "bins/monitor/main.rs"
