@@ -39,12 +39,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok((metrics, src_adr)) => {
                 receive_count += 1;
                 println!(
-                    "[MAIN THREAD] Received from: {}, {:.1}°C, {:.1}%RH, {:.1}hPa, Door: {}",
+                    "[MAIN THREAD] Received from: {}, {:.1}°C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
                     src_adr,
                     metrics.temperature,
                     metrics.humidity,
                     metrics.pressure,
-                    metrics.door_to_string()
+                    metrics.door_to_string(),
+                    metrics.vibration_level,
                 );
             }
             Err(RecvTimeoutError::Timeout) => {

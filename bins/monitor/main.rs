@@ -28,18 +28,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "⚠️ WARNING: High humidity"
                 } else if metrics.pressure < 980.0 || metrics.pressure > 1020.0 {
                     "⚠️ WARNING: Pressure out of range"
+                } else if metrics.vibration_level > 80.0 {
+                    "⚠️ WARNING: High vibration"
                 } else {
                     "✅ All is well"
                 };
 
                 println!(
-                    "[{}] Received from: {}, {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Alert: {}",
+                    "[{}] Received from: {}, {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%, Alert: {}",
                     metrics.formatted_time(),
                     src_addr,
                     metrics.temperature,
                     metrics.humidity,
                     metrics.pressure,
                     metrics.door_to_string(),
+                    metrics.vibration_level,
                     alert_status,
                 );
             }

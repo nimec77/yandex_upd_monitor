@@ -9,10 +9,17 @@ pub struct RoomMetrics {
     pub humidity: f32,
     pub pressure: f32,
     pub door_open: bool,
+    pub vibration_level: f32,
 }
 
 impl RoomMetrics {
-    pub fn new(temperature: f32, humidity: f32, pressure: f32, door_open: bool) -> Self {
+    pub fn new(
+        temperature: f32,
+        humidity: f32,
+        pressure: f32,
+        door_open: bool,
+        vibration_level: f32,
+    ) -> Self {
         Self {
             timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -22,6 +29,7 @@ impl RoomMetrics {
             humidity,
             pressure,
             door_open,
+            vibration_level,
         }
     }
 
@@ -31,10 +39,11 @@ impl RoomMetrics {
         let mut rng = rand::rng();
 
         Self::new(
-            rng.random_range(18.0..30.0),
-            rng.random_range(40.0..90.0),
-            rng.random_range(950.0..1050.0),
+            rng.random_range(18.0..26.0),
+            rng.random_range(40.0..60.0),
+            rng.random_range(980.0..1030.0),
             rng.random_bool(0.1),
+            rng.random_range(30.0..100.0),
         )
     }
 

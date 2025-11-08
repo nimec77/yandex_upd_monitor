@@ -36,13 +36,14 @@ impl MetricsReceiver {
                         Ok((metrics, _)) => {
                             println!(
                                 "
-                            [{}]: Received metrics from {}: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}",
+                            [{}]: Received metrics from {}: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
                                 metrics.formatted_time(),
                                 src_addr,
                                 metrics.temperature,
                                 metrics.humidity,
                                 metrics.pressure,
-                                metrics.door_to_string()
+                                metrics.door_to_string(),
+                                metrics.vibration_level,
                             );
                         }
                         Err(e) => eprintln!("Error decoding metrics: {e}"),

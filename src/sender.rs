@@ -35,13 +35,14 @@ impl MetricsSender {
             let metrics = RoomMetrics::random();
 
             match self.send_to(&metrics, &target_address) {
-                Ok(()) => print!(
-                    "[{}] Sent: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}",
+                Ok(()) => println!(
+                    "[{}] Sent: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
                     metrics.formatted_time(),
                     metrics.temperature,
                     metrics.humidity,
                     metrics.pressure,
                     metrics.door_to_string(),
+                    metrics.vibration_level,
                 ),
                 Err(e) => eprintln!("Error sending metrics: {e}"),
             }
