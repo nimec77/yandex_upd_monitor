@@ -43,10 +43,6 @@ impl RoomMetrics {
     }
 
     pub fn door_to_string(&self) -> &str {
-        if self.door_open {
-            "Open"
-        } else {
-            "Closed"
-        }
+        if self.door_open { "Open" } else { "Closed" }
     }
 }
