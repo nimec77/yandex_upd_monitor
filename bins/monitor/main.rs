@@ -10,7 +10,7 @@ use crate::logger::{ConsoleLogger, Logger, MemoryLogger};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bind_address = "127.0.0.1:8080";
 
-    let console = Box::new(ConsoleLogger);
+    let console = Box::new(ConsoleLogger::new());
     let memory = Box::new(MemoryLogger::new());
 
     let loggers: Vec<Box<dyn Logger>> = vec![console.clone(), memory];

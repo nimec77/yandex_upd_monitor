@@ -1,6 +1,8 @@
 use std::{any::Any, sync::Mutex};
 
 pub trait Logger {
+    fn new() -> Self where Self: Sized;
+
     fn log(&self, message: &str);
 
     fn as_any(&self) -> &dyn Any;
@@ -10,6 +12,10 @@ pub trait Logger {
 pub struct ConsoleLogger;
 
 impl Logger for ConsoleLogger {
+    fn new() -> Self {
+        Self
+    }
+
     fn log(&self, message: &str) {
         println!("{}", message);
     }
@@ -34,6 +40,10 @@ impl MemoryLogger {
 }
 
 impl Logger for MemoryLogger {
+    fn new() -> Self {
+        Self::new()
+    }
+
     fn log(&self, message: &str) {
         self.entries.lock().unwrap().push(message.to_string());
     }
