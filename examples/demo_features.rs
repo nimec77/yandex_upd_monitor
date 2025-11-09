@@ -1,10 +1,12 @@
 // examples/demo_features.rs
 
-use yandex_upd_monitor::RoomMetrics;
+use yandex_upd_monitor::{RoomMetrics, init_logger};
 
 fn main() {
     println!("Demonstration of features");
     println!("===============================");
+
+    init_logger();
 
     let metrics = RoomMetrics::random();
 
@@ -15,8 +17,11 @@ fn main() {
     println!("  Door: {}", metrics.door_to_string());
     println!("  Vibration: {:.1}%", metrics.vibration_level);
 
+    #[cfg(feature = "logging")]
+    println!("\nFeature 'log' is active");
+
     #[cfg(feature = "random")]
-    println!("\nFeature 'random' is active");
+    println!("Feature 'random' is active");
 
     #[cfg(feature = "sqlite")]
     println!("Feature 'sqlite' is active");

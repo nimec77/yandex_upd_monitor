@@ -1,6 +1,8 @@
 use std::{net::UdpSocket, sync::mpsc, thread};
 
-use crate::metrics::RoomMetrics;
+use log::{error, info};
+
+use crate::{init_logger, metrics::RoomMetrics};
 
 pub struct MetricsReceiver {
     socket: UdpSocket,
@@ -8,15 +10,17 @@ pub struct MetricsReceiver {
 
 impl MetricsReceiver {
     pub fn new(bind_address: &str) -> Result<Self, std::io::Error> {
+        init_logger();
         let socket = UdpSocket::bind(bind_address)?;
-        println!("Server run on {bind_address}");
+        info!("Server run on {bind_address}");
+
         Ok(Self { socket })
     }
 
     pub fn start_in_thread(self) -> thread::JoinHandle<()> {
         thread::spawn(move || {
             if let Err(e) = self.receive_loop() {
-                eprintln!("Error receiving metrics: {e}");
+                error!("Error receiving metrics: {e}");
             }
         })
     }
@@ -24,7 +28,7 @@ impl MetricsReceiver {
     fn receive_loop(self) -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = [0u8; 1024];
 
-        println!("Waiting for metrics...");
+        info!("Waiting for metrics...");
 
         loop {
             match self.socket.recv_from(&mut buf) {
@@ -34,9 +38,8 @@ impl MetricsReceiver {
                         bincode::config::standard(),
                     ) {
                         Ok((metrics, _)) => {
-                            println!(
-                                "
-                            [{}]: Received metrics from {}: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
+                            info!(
+                                "[{}] Received metrics from {}: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
                                 metrics.formatted_time(),
                                 src_addr,
                                 metrics.temperature,
@@ -46,10 +49,10 @@ impl MetricsReceiver {
                                 metrics.vibration_level,
                             );
                         }
-                        Err(e) => eprintln!("Error decoding metrics: {e}"),
+                        Err(e) => error!("Error decoding metrics: {e}"),
                     }
                 }
-                Err(e) => eprintln!("Error receiving metrics: {e}"),
+                Err(e) => error!("Error receiving metrics: {e}"),
             }
         }
     }
@@ -64,7 +67,7 @@ impl MetricsReceiver {
 
         let handle = thread::spawn(move || {
             if let Err(e) = self.receive_loop_with_channel(tx) {
-                eprintln!("Error receiving metrics: {e}");
+                error!("Error receiving metrics: {e}");
             }
         });
 
@@ -77,7 +80,7 @@ impl MetricsReceiver {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = [0u8; 1024];
 
-        println!("Data channel is ready");
+        info!("Data channel is ready");
 
         loop {
             match self.socket.recv_from(&mut buf) {
@@ -87,13 +90,13 @@ impl MetricsReceiver {
                 ) {
                     Ok((metrics, _)) => {
                         if tx.send((metrics, src_addr)).is_err() {
-                            eprintln!("Channel is closed. Stopping the receiver thread.");
+                            error!("Channel is closed. Stopping the receiver thread.");
                             break;
                         }
                     }
-                    Err(e) => eprintln!("Error decoding metrics: {e}"),
+                    Err(e) => error!("Error decoding metrics: {e}"),
                 },
-                Err(e) => eprintln!("Error receiving metrics: {e}"),
+                Err(e) => error!("Error receiving metrics: {e}"),
             }
         }
         Ok(())

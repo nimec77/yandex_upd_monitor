@@ -49,7 +49,7 @@ impl RoomMetrics {
     }
 
     #[cfg(not(feature = "random"))]
-    pub fn random() -> Self {        
+    pub fn random() -> Self {
         use std::hash::DefaultHasher;
         use std::hash::Hash;
         use std::hash::Hasher;

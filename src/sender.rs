@@ -1,6 +1,8 @@
 use std::{io, net::UdpSocket, thread, time::Duration};
 
-use crate::metrics::RoomMetrics;
+use log::{debug, error, info};
+
+use crate::{init_logger, metrics::RoomMetrics};
 
 pub struct MetricsSender {
     socket: UdpSocket,
@@ -8,7 +10,12 @@ pub struct MetricsSender {
 
 impl MetricsSender {
     pub fn new(bind_address: &str) -> Result<Self, io::Error> {
+        init_logger();
+        
         let socket = UdpSocket::bind(bind_address)?;
+
+        info!("MetricsSender initialized");
+
         Ok(Self { socket })
     }
 
@@ -17,8 +24,11 @@ impl MetricsSender {
         metrics: &RoomMetrics,
         target_address: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        debug!("Sending metrics to {target_address}");
         let encoded = bincode::serde::encode_to_vec(metrics, bincode::config::standard())?;
+
         self.socket.send_to(&encoded, target_address)?;
+        debug!("Metrics sent to {target_address}");
         Ok(())
     }
 
@@ -27,22 +37,27 @@ impl MetricsSender {
         target_address: String,
         interval_ms: u64,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!(
+        info!(
+            "The sensor simulator has been launched. Sending to {target_address} every {interval_ms}ms"
+        );
+
+        debug!(
             "The sensor simulator has been launched. Sending to {target_address} every {interval_ms}ms"
         );
 
         #[cfg(feature = "random")]
-        println!("✅ The 'random' feature is active - rand is used to generate data");
+        info!("✅ The 'random' feature is active - rand is used to generate data");
 
         #[cfg(not(feature = "random"))]
-        println!("✅ The 'random' feature is inactive - fixed data is used");
+        info!("✅ The 'random' feature is inactive - fixed data is used");
 
         loop {
+            debug!("Sending metrics...");
             let metrics = RoomMetrics::random();
 
             match self.send_to(&metrics, &target_address) {
                 Ok(()) => {
-                    println!(
+                    info!(
                         "[{}] Sent: {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%",
                         metrics.formatted_time(),
                         metrics.temperature,
@@ -54,10 +69,10 @@ impl MetricsSender {
 
                     #[cfg(feature = "sqlite")]
                     {
-                        println!("   💾 SQL: {}", metrics.to_sql());
+                        info!("   💾 SQL: {}", metrics.to_sql());
                     }
                 }
-                Err(e) => eprintln!("Error sending metrics: {e}"),
+                Err(e) => error!("Error sending metrics: {e}"),
             }
 
             thread::sleep(Duration::from_millis(interval_ms));
