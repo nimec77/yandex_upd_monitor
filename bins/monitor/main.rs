@@ -1,11 +1,23 @@
-use yandex_upd_monitor::{MetricsReceiver, receiver::{MockReceiver, Receiver}};
+mod logger;
+
+use yandex_upd_monitor::{
+    MetricsReceiver,
+    receiver::{MockReceiver, Receiver},
+};
+
+use crate::logger::{ConsoleLogger, Logger, MemoryLogger};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bind_address = "127.0.0.1:8080";
 
-    println!("Launch of a bank vault monitoring system");
-    println!("Listening to address: {bind_address}");
-    println!("──────────────────────────────────────────────────");
+    let console = Box::new(ConsoleLogger);
+    let memory = Box::new(MemoryLogger::new());
+
+    let loggers: Vec<Box<dyn Logger>> = vec![console.clone(), memory];
+
+    console.log("Launch of a bank vault monitoring system");
+    console.log(&format!("Listening to address: {bind_address}"));
+    console.log("──────────────────────────────────────────────────");
 
     let receiver: Box<dyn Receiver> = if std::env::var("USE_MOCK").is_ok() {
         println!("Using mock receiver");
@@ -16,8 +28,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let (receiver_handle, metrics_rx) = receiver.start_with_channel();
 
-    println!("The monitoring system has been launched. Waiting for data.");
-    println!("Press Ctrl+C to stop");
+    console.log("The monitoring system has been launched. Waiting for data.");
+    console.log("Press Ctrl+C to stop");
 
     let mut total_received = 0;
 
@@ -40,27 +52,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "✅ All is well"
                 };
 
-                println!(
-                    "[{}] Received from: {}, {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%, Alert: {}",
-                    metrics.formatted_time(),
-                    src_addr,
-                    metrics.temperature,
-                    metrics.humidity,
-                    metrics.pressure,
-                    metrics.door_to_string(),
-                    metrics.vibration_level,
-                    alert_status,
-                );
+                for logger in loggers.iter() {
+                    logger.log(&format!(
+                        "[{}] Received from: {}, {:.1}C, {:.1}%RH, {:.1}hPa, Door: {}, Vibration: {:.1}%, Alert: {}",
+                        metrics.formatted_time(),
+                        src_addr,
+                        metrics.temperature,
+                        metrics.humidity,
+                        metrics.pressure,
+                        metrics.door_to_string(),
+                        metrics.vibration_level,
+                        alert_status,
+                    ));
+                }
             }
             Err(e) => {
-                eprintln!("Error receiving metrics: {e}");
+                console.log(&format!("Error receiving metrics: {e}"));
                 break;
             }
         }
     }
 
     let _ = receiver_handle.join();
-    println!("Result: {total_received} data packets received");
+
+    for logger in loggers.iter() {
+        if let Some(mem) = logger.as_any().downcast_ref::<MemoryLogger>() {
+            println!("Content MemoryLogger:");
+            for entry in mem.get_entries() {
+                println!("  {entry}");
+            }
+        }
+    }
+
+    console.log(&format!("Result: {total_received} data packets received"));
 
     Ok(())
 }
