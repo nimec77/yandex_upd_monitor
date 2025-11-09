@@ -49,8 +49,10 @@ impl RoomMetrics {
     }
 
     #[cfg(not(feature = "random"))]
-    pub fn random() -> Self {
+    pub fn random() -> Self {        
         use std::hash::DefaultHasher;
+        use std::hash::Hash;
+        use std::hash::Hasher;
 
         let mut hasher = DefaultHasher::new();
         SystemTime::now().hash(&mut hasher);
@@ -61,7 +63,7 @@ impl RoomMetrics {
             40.0 + ((hash % 1000) as f32 / 50.0),
             1000.0 + ((hash % 400) as f32 - 200.0),
             hash % 10 == 0,
-            30 + ((hash % 1000) as f32 / 10.0),
+            40.0 + ((hash % 1000) as f32 / 15.0),
         )
     }
 

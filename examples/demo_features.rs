@@ -12,6 +12,8 @@ fn main() {
     println!("  Temperature: {:.1}°C", metrics.temperature);
     println!("  Humidity: {:.1}%", metrics.humidity);
     println!("  Pressure: {:.1}hPa", metrics.pressure);
+    println!("  Door: {}", metrics.door_to_string());
+    println!("  Vibration: {:.1}%", metrics.vibration_level);
 
     #[cfg(feature = "random")]
     println!("\nFeature 'random' is active");
