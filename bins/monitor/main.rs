@@ -1,4 +1,4 @@
-use yandex_upd_monitor::MetricsReceiver;
+use yandex_upd_monitor::{MetricsReceiver, receiver::{MockReceiver, Receiver}};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bind_address = "127.0.0.1:8080";
@@ -7,7 +7,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Listening to address: {bind_address}");
     println!("──────────────────────────────────────────────────");
 
-    let receiver = MetricsReceiver::new(bind_address)?;
+    let receiver: Box<dyn Receiver> = if std::env::var("USE_MOCK").is_ok() {
+        println!("Using mock receiver");
+        Box::new(MockReceiver)
+    } else {
+        println!("Using metrics receiver");
+        Box::new(MetricsReceiver::new(bind_address)?)
+    };
     let (receiver_handle, metrics_rx) = receiver.start_with_channel();
 
     println!("The monitoring system has been launched. Waiting for data.");
